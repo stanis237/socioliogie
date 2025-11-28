@@ -1,0 +1,1 @@
+# Emotions app init

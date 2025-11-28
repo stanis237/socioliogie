@@ -1,0 +1,14 @@
+{
+    "cortex-debug.armToolchainPath": "${userRoot}/.eide/tools/gcc_arm\\bin",
+    "cortex-debug.JLinkGDBServerPath": "${userRoot}/.eide/tools/jlink\\JLinkGDBServerCL.exe",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./learning_platform",
+        "-p",
+        "*test.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "chat.agent.maxRequests": 500000
+}

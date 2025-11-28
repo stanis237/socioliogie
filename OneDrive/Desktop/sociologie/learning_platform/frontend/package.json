@@ -1,0 +1,65 @@
+{
+  "name": "learning-platform-frontend",
+  "version": "1.0.0",
+  "description": "Frontend React pour la plateforme d'apprentissage personnalisé avec IA",
+  "private": true,
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.9.7",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/react-query": "^5.8.3",
+    "axios": "^1.5.0",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "jwt-decode": "^3.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.1.3",
+    "react-router-dom": "^6.16.0",
+    "react-toastify": "^9.1.3",
+    "react-webcam": "^7.2.0",
+    "recharts": "^2.10.0",
+    "zustand": "^4.4.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.3",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/node": "^18.15.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "ajv": "6.12.6",
+    "ajv-keywords": "3.5.2",
+    "autoprefixer": "^10.4.16",
+    "cypress": "^13.3.0",
+    "eslint": "^8.49.0",
+    "postcss": "^8.4.30",
+    "prettier": "^3.0.3",
+    "schema-utils": "3.1.1",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^4.9.5",
+    "vitest": "^0.34.6"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "vitest",
+    "test:e2e": "cypress open",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write src"
+  },
+
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

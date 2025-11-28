@@ -1,0 +1,4 @@
+# depuis C:\Users\Lenovo\OneDrive\Desktop\sociologie\learning_platform
+.\\.venv\\Scripts\\Activate.ps1
+pip install -r requirements.txt
+pytest -q
