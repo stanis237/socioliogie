@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header">
+            <h4><i class="bi bi-question-circle"></i> {{ quiz.title }}</h4>
+            <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar" id="quizProgress" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+        <div class="card-body">
+            <form id="quizForm">
+                {% csrf_token %}
+                {% if quiz.questions %}
+                    {% for question in quiz.questions %}
+                    <div class="mb-4 question-block" data-question="{{ forloop.counter0 }}">
+                        <h5><span class="badge bg-primary me-2">{{ forloop.counter }}</span>{{ question.question }}</h5>
+                        {% for option in question.options %}
+                        <div class="form-check option-item">
+                            <input class="form-check-input" type="radio" name="question_{{ forloop.parentloop.counter0 }}" 
+                                   id="option_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" value="{{ option }}">
+                            <label class="form-check-label" for="option_{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+                                {{ option }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-muted">Aucune question disponible pour ce quiz.</p>
+                {% endif %}
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary" id="resetBtn">
+                        <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Soumettre
+                    </button>
+                </div>
+            </form>
+            <div id="quizResult" class="mt-4" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('quizForm');
+    const questions = document.querySelectorAll('.question-block');
+    const totalQuestions = questions.length;
+    const progressBar = document.getElementById('quizProgress');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    // Mettre à jour la progression
+    function updateProgress() {
+        const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+        const progress = (answered / totalQuestions) * 100;
+        progressBar.style.width = progress + '%';
+    }
+    
+    // Écouter les changements de réponses
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateProgress();
+            // Animation de sélection
+            this.closest('.option-item').classList.add('selected');
+            document.querySelectorAll('.option-item').forEach(item => {
+                if (item !== this.closest('.option-item')) {
+                    item.classList.remove('selected');
+                }
+            });
+        });
+    });
+    
+    // Réinitialiser le quiz
+    resetBtn.addEventListener('click', function() {
+        if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos réponses ?')) {
+            form.reset();
+            updateProgress();
+            document.getElementById('quizResult').style.display = 'none';
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+        }
+    });
+    
+    // Soumettre le quiz
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+        
+        if (answered < totalQuestions) {
+            if (!confirm(`Vous n'avez répondu qu'à ${answered} question(s) sur ${totalQuestions}. Voulez-vous continuer ?`)) {
+                return;
+            }
+        }
+        
+        // Animation de soumission
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Soumission...';
+        
+        // Simuler la soumission (dans une vraie app, cela enverrait les données au serveur)
+        setTimeout(() => {
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h5><i class="bi bi-check-circle"></i> Quiz soumis avec succès!</h5>
+                    <p>Vous avez répondu à ${answered} question(s) sur ${totalQuestions}.</p>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Soumettre';
+        }, 1500);
+    });
+    
+    updateProgress();
+});
+</script>
+
+<style>
+.option-item {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.option-item:hover {
+    background-color: #f8f9fa;
+}
+
+.option-item.selected {
+    background-color: #e7f1ff;
+    border-left: 3px solid #0d6efd;
+}
+
+.question-block {
+    padding: 20px;
+    border-left: 3px solid #e9ecef;
+    transition: all 0.3s;
+}
+
+.question-block:hover {
+    border-left-color: #0d6efd;
+}
+</style>
+{% endblock %}
+

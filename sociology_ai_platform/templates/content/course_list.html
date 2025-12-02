@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cours{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-book"></i> Liste des Cours</h2>
+        <div class="d-flex gap-2">
+            {% if user.is_authenticated %}
+            <a href="{% url 'generate_course' %}" class="btn btn-success">
+                <i class="bi bi-robot"></i> Générer un cours IA
+            </a>
+            <a href="{% url 'recommendations' %}" class="btn btn-outline-primary">
+                <i class="bi bi-stars"></i> Voir les recommandations
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Barre de recherche -->
+    <div class="mb-4">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control search-input" id="courseSearch" 
+                   placeholder="Rechercher un cours..." data-target=".course-card">
+        </div>
+    </div>
+    
+    {% if courses %}
+    <div class="row g-4" id="coursesContainer">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4 course-card searchable-item fade-in">
+            <div class="card h-100 shadow-sm interactive" data-course-id="{{ course.id }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="card-text text-muted">{{ course.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ course.created_at|date:"d M Y" }}
+                        </small>
+                        <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm">
+                            Voir le cours <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Aucun cours disponible pour le moment.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Recherche en temps réel
+document.getElementById('courseSearch')?.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const cards = document.querySelectorAll('.course-card');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            card.style.display = '';
+            card.classList.add('fade-in');
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
+

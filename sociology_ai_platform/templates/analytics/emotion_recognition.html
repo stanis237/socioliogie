@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+
+{% block title %}Reconnaissance d'Émotion{% endblock %}
+
+{% block extra_css %}
+<style>
+    #video {
+        width: 100%;
+        max-width: 640px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    #canvas {
+        display: none;
+    }
+    .emotion-display {
+        font-size: 2rem;
+        margin: 20px 0;
+    }
+    .recording-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #dc3545;
+        display: inline-block;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    .emotion-card {
+        transition: transform 0.3s;
+    }
+    .emotion-card:hover {
+        transform: scale(1.05);
+    }
+    .course-recommendation-card {
+        transition: all 0.3s ease;
+    }
+    .course-recommendation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-camera-video"></i> Reconnaissance d'Émotion en Temps Réel
+            </h2>
+            <p class="lead">Activez votre webcam pour détecter automatiquement vos émotions et adapter votre expérience d'apprentissage.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Webcam Section -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="bi bi-camera"></i> Caméra</h5>
+                </div>
+                <div class="card-body text-center">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas"></canvas>
+                    <div class="mt-3">
+                        <button id="startBtn" class="btn btn-success me-2">
+                            <i class="bi bi-play-circle"></i> Démarrer
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger me-2" disabled>
+                            <i class="bi bi-stop-circle"></i> Arrêter
+                        </button>
+                        <button id="captureBtn" class="btn btn-primary" disabled>
+                            <i class="bi bi-camera-fill"></i> Capturer
+                        </button>
+                    </div>
+                    <div id="status" class="mt-3">
+                        <span class="badge bg-secondary">En attente</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotion Display Section -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="bi bi-emoji-smile"></i> Émotion Détectée</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div id="emotionDisplay" class="emotion-display">
+                        <i class="bi bi-emoji-neutral text-muted" style="font-size: 5rem;"></i>
+                    </div>
+                    <h4 id="emotionText" class="text-muted">Aucune émotion détectée</h4>
+                    <div id="confidence" class="mt-3">
+                        <div class="progress" style="height: 25px;">
+                            <div id="confidenceBar" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    <div id="learningState" class="mt-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Activez la caméra pour commencer
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des cours recommandés -->
+    <div class="row mt-4" id="recommendedCoursesSection" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-book"></i> Cours Recommandés pour Votre Émotion</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recommendedCoursesList" class="row g-3">
+                        <!-- Les cours seront ajoutés dynamiquement ici -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Emotion Selection -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5><i class="bi bi-hand-index"></i> Ou sélectionnez manuellement votre émotion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <div class="card emotion-card text-center" data-emotion="happy">
+                                <div class="card-body">
+                                    <i class="bi bi-emoji-smile text-warning" style="font-size: 3rem;"></i>
+                                    <p class="mb-0 mt-2">Heureux</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <div class="card emotion-card text-center" data-emotion="sad">
+                                <div class="card-body">
+                                    <i class="bi bi-emoji-frown text-primary" style="font-size: 3rem;"></i>
+                                    <p class="mb-0 mt-2">Triste</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <div class="card emotion-card text-center" data-emotion="neutral">
+                                <div class="card-body">
+                                    <i class="bi bi-emoji-neutral text-secondary" style="font-size: 3rem;"></i>
+                                    <p class="mb-0 mt-2">Neutre</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <div class="card emotion-card text-center" data-emotion="focused">
+                                <div class="card-body">
+                                    <i class="bi bi-eye text-success" style="font-size: 3rem;"></i>
+                                    <p class="mb-0 mt-2">Concentré</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <div class="card emotion-card text-center" data-emotion="confused">
+                                <div class="card-body">
+                                    <i class="bi bi-question-circle text-warning" style="font-size: 3rem;"></i>
+                                    <p class="mb-0 mt-2">Confus</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <div class="card emotion-card text-center" data-emotion="excited">
+                                <div class="card-body">
+                                    <i class="bi bi-lightning-charge text-danger" style="font-size: 3rem;"></i>
+                                    <p class="mb-0 mt-2">Excité</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let stream = null;
+let isRecording = false;
+let emotionInterval = null;
+
+const emotionIcons = {
+    'happy': '<i class="bi bi-emoji-smile text-warning" style="font-size: 5rem;"></i>',
+    'sad': '<i class="bi bi-emoji-frown text-primary" style="font-size: 5rem;"></i>',
+    'neutral': '<i class="bi bi-emoji-neutral text-secondary" style="font-size: 5rem;"></i>',
+    'focused': '<i class="bi bi-eye text-success" style="font-size: 5rem;"></i>',
+    'confused': '<i class="bi bi-question-circle text-warning" style="font-size: 5rem;"></i>',
+    'excited': '<i class="bi bi-lightning-charge text-danger" style="font-size: 5rem;"></i>'
+};
+
+const emotionLabels = {
+    'happy': 'Heureux',
+    'sad': 'Triste',
+    'neutral': 'Neutre',
+    'focused': 'Concentré',
+    'confused': 'Confus',
+    'excited': 'Excité'
+};
+
+// Démarrer la webcam
+document.getElementById('startBtn').addEventListener('click', async () => {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: 640, 
+                height: 480,
+                facingMode: 'user'
+            } 
+        });
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('captureBtn').disabled = false;
+        document.getElementById('status').innerHTML = '<span class="badge bg-success"><span class="recording-indicator"></span> Enregistrement</span>';
+        
+        isRecording = true;
+        startEmotionDetection();
+    } catch (error) {
+        alert('Erreur lors de l\'accès à la caméra: ' + error.message);
+    }
+});
+
+// Arrêter la webcam
+document.getElementById('stopBtn').addEventListener('click', () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+    
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('captureBtn').disabled = true;
+    document.getElementById('status').innerHTML = '<span class="badge bg-secondary">Arrêté</span>';
+    
+    isRecording = false;
+    if (emotionInterval) {
+        clearInterval(emotionInterval);
+    }
+});
+
+// Capturer et analyser
+document.getElementById('captureBtn').addEventListener('click', () => {
+    captureAndAnalyze();
+});
+
+// Sélection manuelle d'émotion
+document.querySelectorAll('.emotion-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const emotion = card.dataset.emotion;
+        recordEmotion(emotion, 0.8, 'Sélection manuelle');
+    });
+});
+
+function startEmotionDetection() {
+    // Simuler la détection d'émotion toutes les 3 secondes
+    emotionInterval = setInterval(() => {
+        if (isRecording) {
+            simulateEmotionDetection();
+        }
+    }, 3000);
+}
+
+function simulateEmotionDetection() {
+    // Simulation - dans une vraie implémentation, cela utiliserait un modèle ML
+    const emotions = ['happy', 'sad', 'neutral', 'focused', 'confused', 'excited'];
+    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+    const confidence = 0.6 + Math.random() * 0.3;
+    
+    displayEmotion(emotion, confidence);
+    
+    // Enregistrer automatiquement toutes les 30 secondes
+    if (Math.random() > 0.7) {
+        recordEmotion(emotion, confidence, 'Détection automatique via webcam');
+    }
+}
+
+function captureAndAnalyze() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    
+    // Simuler l'analyse
+    const emotions = ['happy', 'sad', 'neutral', 'focused', 'confused', 'excited'];
+    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+    const confidence = 0.7 + Math.random() * 0.25;
+    
+    displayEmotion(emotion, confidence);
+    recordEmotion(emotion, confidence, 'Capture manuelle');
+}
+
+function displayEmotion(emotion, confidence) {
+    document.getElementById('emotionDisplay').innerHTML = emotionIcons[emotion];
+    document.getElementById('emotionText').textContent = emotionLabels[emotion];
+    document.getElementById('confidenceBar').style.width = (confidence * 100) + '%';
+    document.getElementById('confidenceBar').textContent = Math.round(confidence * 100) + '%';
+    document.getElementById('confidenceBar').className = 'progress-bar bg-' + 
+        (confidence > 0.7 ? 'success' : confidence > 0.5 ? 'warning' : 'danger');
+}
+
+function recordEmotion(emotion, intensity, context) {
+    fetch('{% url "recognize_emotion_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            emotion_type: emotion,
+            intensity: intensity,
+            confidence: intensity,
+            context: context
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateLearningState(data.learning_state);
+            if (data.recommended_courses && data.recommended_courses.length > 0) {
+                displayRecommendedCourses(data.recommended_courses, data.emotion_type);
+            }
+            showNotification(data.message, 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'enregistrement de l\'émotion', 'danger');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function displayRecommendedCourses(courses, emotionType) {
+    const section = document.getElementById('recommendedCoursesSection');
+    const list = document.getElementById('recommendedCoursesList');
+    
+    if (!courses || courses.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    
+    // Afficher la section
+    section.style.display = 'block';
+    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Vider la liste
+    list.innerHTML = '';
+    
+    // Ajouter chaque cours
+    courses.forEach((course, index) => {
+        const courseCard = document.createElement('div');
+        courseCard.className = 'col-md-6 col-lg-4';
+        courseCard.style.animationDelay = (index * 0.1) + 's';
+        courseCard.innerHTML = `
+            <div class="card h-100 shadow-sm course-recommendation-card fade-in">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">${course.title}</h6>
+                        <span class="badge bg-${getDifficultyColor(course.difficulty)}">${course.difficulty}</span>
+                    </div>
+                    <p class="card-text text-muted small">${course.description}</p>
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-star-fill text-warning"></i> Score: ${course.score.toFixed(2)}
+                        </small>
+                    </div>
+                    <p class="small text-info mb-2">
+                        <i class="bi bi-lightbulb"></i> ${course.reason}
+                    </p>
+                    <a href="${course.url}" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-arrow-right"></i> Voir le cours
+                    </a>
+                </div>
+            </div>
+        `;
+        list.appendChild(courseCard);
+    });
+}
+
+function getDifficultyColor(difficulty) {
+    const colors = {
+        'Débutant': 'success',
+        'Intermédiaire': 'warning',
+        'Avancé': 'danger'
+    };
+    return colors[difficulty] || 'secondary';
+}
+
+function showNotification(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+function updateLearningState(learningState) {
+    const stateDiv = document.getElementById('learningState');
+    const alertClass = learningState.optimal_time ? 'alert-success' : 'alert-warning';
+    stateDiv.innerHTML = `
+        <div class="alert ${alertClass}">
+            <h6><i class="bi bi-lightbulb"></i> État d'apprentissage</h6>
+            <p class="mb-1"><strong>État:</strong> ${learningState.suggested_action}</p>
+            <p class="mb-0"><small>${learningState.optimal_time ? 'Moment optimal pour apprendre!' : 'Prenez votre temps'}</small></p>
+        </div>
+    `;
+    stateDiv.classList.add('fade-in');
+}
+</script>
+{% endblock %}
+

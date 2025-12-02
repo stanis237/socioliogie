@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Tableau de bord</h2>
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center shadow stat-card" data-stat="{{ total_courses }}">
+                <div class="card-body">
+                    <i class="bi bi-book text-primary" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 stat-number">{{ total_courses }}</h3>
+                    <p class="text-muted mb-0">Cours disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow stat-card" data-stat="{{ completed_courses }}">
+                <div class="card-body">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 stat-number">{{ completed_courses }}</h3>
+                    <p class="text-muted mb-0">Cours complétés</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow stat-card" data-stat="{{ total_points }}">
+                <div class="card-body">
+                    <i class="bi bi-star text-warning" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 stat-number">{{ total_points }}</h3>
+                    <p class="text-muted mb-0">Points accumulés</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow stat-card" data-stat="{{ progress|floatformat:0 }}">
+                <div class="card-body">
+                    <i class="bi bi-graph-up text-info" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 stat-number">{{ progress|floatformat:0 }}%</h3>
+                    <p class="text-muted mb-0">Progression</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Progress Bar -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5>Progression globale</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: {{ progress }}%">
+                            {{ progress|floatformat:1 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="bi bi-stars"></i> Recommandations</h5>
+                    <a href="{% url 'recommendations' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                </div>
+                <div class="card-body">
+                    {% if recommendations %}
+                    <div class="list-group">
+                        {% for rec in recommendations %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ rec.course.title }}</h6>
+                                <span class="badge bg-primary">{{ rec.score|floatformat:2 }}</span>
+                            </div>
+                            {% if rec.reason %}
+                            <p class="mb-1 small text-muted">{{ rec.reason }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Aucune recommandation pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Emotions -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="bi bi-emoji-smile"></i> Données émotionnelles récentes</h5>
+                    <a href="{% url 'emotion_recognition' %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-camera-video"></i> Reconnaissance IA
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if learning_state %}
+                    <div class="alert alert-{% if learning_state.optimal_time %}success{% else %}info{% endif %} mb-3">
+                        <h6><i class="bi bi-robot"></i> État d'apprentissage IA</h6>
+                        <p class="mb-1"><strong>{{ learning_state.suggested_action }}</strong></p>
+                        <small>{{ learning_state.optimal_time|yesno:"Moment optimal pour apprendre,Prenez votre temps" }}</small>
+                    </div>
+                    {% endif %}
+                    {% if recent_emotions %}
+                    <div class="list-group">
+                        {% for emotion in recent_emotions %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ emotion.get_emotion_type_display }}</h6>
+                                    {% if emotion.context %}
+                                    <small class="text-muted">{{ emotion.context }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-info">{{ emotion.intensity|floatformat:2 }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ emotion.recorded_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Aucune donnée émotionnelle enregistrée.</p>
+                    {% endif %}
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{% url 'record_emotion' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Enregistrer manuellement
+                        </a>
+                        <a href="{% url 'emotion_recognition' %}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-camera-video"></i> Reconnaissance IA
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animation des statistiques au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('fade-in');
+        }, index * 100);
+    });
+    
+    // Animation de la barre de progression
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        const width = progressBar.style.width;
+        progressBar.style.width = '0%';
+        setTimeout(() => {
+            progressBar.style.width = width;
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
+

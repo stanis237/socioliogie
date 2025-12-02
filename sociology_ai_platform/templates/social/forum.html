@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Forum{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-chat-dots"></i> Forum de discussion</h2>
+        <a href="{% url 'create_post' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Créer un post
+        </a>
+    </div>
+    
+    <!-- Barre de recherche et filtres -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="forumSearch" placeholder="Rechercher dans le forum...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="sortPosts">
+                <option value="recent">Plus récents</option>
+                <option value="oldest">Plus anciens</option>
+                <option value="comments">Plus de commentaires</option>
+            </select>
+        </div>
+    </div>
+    
+    {% if posts %}
+    <div class="row" id="postsContainer">
+        {% for post in posts %}
+        <div class="col-12 mb-3 post-item" data-post-id="{{ post.id }}" 
+             data-author="{{ post.author.username }}" 
+             data-comments="{{ post.comment_set.count }}"
+             data-date="{{ post.created_at|date:'U' }}">
+            <div class="card shadow post-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">
+                                <a href="{% url 'post_detail' post.id %}" class="text-decoration-none post-link">
+                                    {{ post.title }}
+                                </a>
+                            </h5>
+                            <p class="card-text text-muted post-content">{{ post.content|truncatewords:30 }}</p>
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="bi bi-person"></i> <span class="post-author">{{ post.author.username }}</span>
+                                <span class="ms-3"><i class="bi bi-clock"></i> <span class="post-date">{{ post.created_at|timesince }} ago</span></span>
+                                <span class="ms-3">
+                                    <i class="bi bi-chat"></i> <span class="post-comments">{{ post.comment_set.count }}</span> commentaire{{ post.comment_set.count|pluralize }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Aucun post pour le moment. Soyez le premier à créer un post!
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('forumSearch');
+    const sortSelect = document.getElementById('sortPosts');
+    const postsContainer = document.getElementById('postsContainer');
+    
+    // Recherche en temps réel
+    searchInput?.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const posts = document.querySelectorAll('.post-item');
+        
+        posts.forEach(post => {
+            const title = post.querySelector('.post-link').textContent.toLowerCase();
+            const content = post.querySelector('.post-content').textContent.toLowerCase();
+            const author = post.dataset.author.toLowerCase();
+            
+            if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
+                post.style.display = '';
+                post.classList.add('fade-in');
+            } else {
+                post.style.display = 'none';
+            }
+        });
+    });
+    
+    // Tri des posts
+    sortSelect?.addEventListener('change', function() {
+        const posts = Array.from(document.querySelectorAll('.post-item'));
+        const sortBy = this.value;
+        
+        posts.sort((a, b) => {
+            switch(sortBy) {
+                case 'recent':
+                    return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+                case 'oldest':
+                    return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+                case 'comments':
+                    return parseInt(b.dataset.comments) - parseInt(a.dataset.comments);
+                default:
+                    return 0;
+            }
+        });
+        
+        posts.forEach(post => postsContainer.appendChild(post));
+        
+        // Animation de réorganisation
+        posts.forEach((post, index) => {
+            setTimeout(() => {
+                post.classList.add('fade-in');
+            }, index * 50);
+        });
+    });
+    
+    // Animation des posts au chargement
+    document.querySelectorAll('.post-item').forEach((post, index) => {
+        post.style.animationDelay = (index * 0.1) + 's';
+        post.classList.add('fade-in');
+    });
+    
+    // Effet hover sur les cartes
+    document.querySelectorAll('.post-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
+{% endblock %}
+
