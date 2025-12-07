@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Cours</a></li>
+            <li class="breadcrumb-item active">{{ course.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <h1>{{ course.title }}</h1>
+            <p class="text-muted">{{ course.description }}</p>
+        </div>
+    </div>
+    
+    <!-- Videos -->
+    {% if videos %}
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5><i class="bi bi-play-circle"></i> Vidéos</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for video in videos %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ video.title }}</h6>
+                        <small>{{ video.duration }}</small>
+                    </div>
+                    <a href="{{ video.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                        <i class="bi bi-play-fill"></i> Regarder
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Documents -->
+    {% if documents %}
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5><i class="bi bi-file-earmark-text"></i> Documents</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for document in documents %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ document.title }}</h6>
+                        <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary" download>
+                            <i class="bi bi-download"></i> Télécharger
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quizzes -->
+    {% if quizzes %}
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5><i class="bi bi-question-circle"></i> Quiz</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for quiz in quizzes %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <h6 class="mb-0">{{ quiz.title }}</h6>
+                        <a href="{% url 'quiz_detail' quiz.id %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil"></i> Commencer
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Exercises -->
+    {% if exercises %}
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5><i class="bi bi-journal-text"></i> Exercices</h5>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for exercise in exercises %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ exercise.title }}</h6>
+                            <span class="badge bg-{% if exercise.difficulty == 'easy' %}success{% elif exercise.difficulty == 'medium' %}warning{% else %}danger{% endif %}">
+                                {{ exercise.get_difficulty_display }}
+                            </span>
+                        </div>
+                        <a href="{% url 'exercise_detail' exercise.id %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-arrow-right"></i> Voir
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier le Profil{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5><i class="bi bi-pencil"></i> Modifier le profil</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Biographie</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4">{{ profile.bio }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="level" class="form-label">Niveau</label>
+                            <select class="form-select" id="level" name="level">
+                                <option value="beginner" {% if profile.level == 'beginner' %}selected{% endif %}>Débutant</option>
+                                <option value="intermediate" {% if profile.level == 'intermediate' %}selected{% endif %}>Intermédiaire</option>
+                                <option value="advanced" {% if profile.level == 'advanced' %}selected{% endif %}>Avancé</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="avatar" class="form-label">Photo de profil</label>
+                            {% if profile.avatar %}
+                            <div class="mb-2">
+                                <p class="text-muted small">Photo actuelle:</p>
+                                <img src="{{ profile.avatar.url }}" alt="Avatar actuel" class="rounded-circle mb-2" width="100" height="100" id="current-avatar">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*" onchange="previewImage(this)">
+                            <div class="mt-2">
+                                <img id="avatar-preview" src="#" alt="Aperçu" class="rounded-circle d-none" width="100" height="100">
+                            </div>
+                            <small class="form-text text-muted">Formats acceptés: JPG, PNG, GIF. Taille max: 5MB</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Enregistrer
+                            </button>
+                            <a href="{% url 'profile' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('avatar-preview');
+    const currentAvatar = document.getElementById('current-avatar');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+            if (currentAvatar) {
+                currentAvatar.style.opacity = '0.5';
+            }
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.classList.add('d-none');
+        if (currentAvatar) {
+            currentAvatar.style.opacity = '1';
+        }
+    }
+}
+</script>
+{% endblock %}
+

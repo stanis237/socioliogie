@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Recommandations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-stars"></i> Recommandations personnalisées IA</h2>
+        <a href="{% url 'generate_ai_recommendations' %}" class="btn btn-primary">
+            <i class="bi bi-robot"></i> Générer de nouvelles recommandations IA
+        </a>
+    </div>
+    
+    {% if recommendations %}
+    <div class="row g-4">
+        {% for rec in recommendations %}
+        <div class="col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title">{{ rec.course.title }}</h5>
+                        <span class="badge bg-primary">{{ rec.score|floatformat:2 }}</span>
+                    </div>
+                    <p class="card-text text-muted">{{ rec.course.description|truncatewords:30 }}</p>
+                    {% if rec.reason %}
+                    <div class="alert alert-info mb-3">
+                        <strong>Pourquoi cette recommandation?</strong><br>
+                        {{ rec.reason }}
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'course_detail' rec.course.id %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-right"></i> Voir le cours
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Aucune recommandation disponible pour le moment.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

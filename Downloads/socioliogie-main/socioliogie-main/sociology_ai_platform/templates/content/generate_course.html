@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Générer un Cours avec l'IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .generation-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .generation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+    }
+    .generation-card.selected {
+        border: 3px solid #0d6efd;
+        background-color: #e7f1ff;
+    }
+    .ai-icon {
+        font-size: 4rem;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-robot text-primary"></i> Générateur de Cours IA
+            </h2>
+            <p class="lead">Générez automatiquement des cours personnalisés avec l'intelligence artificielle.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Options de génération -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="bi bi-gear"></i> Type de Génération</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="generation_type" id="type_manual" value="manual" checked>
+                        <label class="form-check-label" for="type_manual">
+                            <strong>Manuel</strong><br>
+                            <small class="text-muted">Générer un cours personnalisé</small>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="generation_type" id="type_profile" value="profile">
+                        <label class="form-check-label" for="type_profile">
+                            <strong>Basé sur mon profil</strong><br>
+                            <small class="text-muted">Adapté à mon niveau: {{ user.profile.get_level_display }}</small>
+                        </label>
+                    </div>
+                    {% if recent_emotion %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="generation_type" id="type_emotion" value="emotion">
+                        <label class="form-check-label" for="type_emotion">
+                            <strong>Basé sur mon émotion</strong><br>
+                            <small class="text-muted">Dernière émotion: {{ recent_emotion.get_emotion_type_display }}</small>
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire de génération -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-magic"></i> Paramètres de Génération</h5>
+                </div>
+                <div class="card-body">
+                    <form id="generateForm" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="generation_type" id="generation_type_input" value="manual">
+                        
+                        <div class="mb-3" id="topicSection">
+                            <label for="topic" class="form-label">Sujet du cours (optionnel)</label>
+                            <input type="text" class="form-control" id="topic" name="topic" 
+                                   placeholder="Ex: Introduction à la sociologie, Algèbre de base...">
+                            <small class="text-muted">Laissez vide pour un sujet généré automatiquement</small>
+                        </div>
+                        
+                        <div class="mb-3" id="subjectSection">
+                            <label for="subject" class="form-label">Matière</label>
+                            <select class="form-select" id="subject" name="subject">
+                                {% for value, label in subjects %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="difficultySection">
+                            <label for="difficulty" class="form-label">Niveau de difficulté</label>
+                            <select class="form-select" id="difficulty" name="difficulty">
+                                <option value="beginner">Débutant</option>
+                                <option value="intermediate" selected>Intermédiaire</option>
+                                <option value="advanced">Avancé</option>
+                            </select>
+                        </div>
+                        
+                        {% if recent_emotion %}
+                        <div class="mb-3" id="multipleSection">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="generate_multiple" name="generate_multiple" value="true">
+                                <label class="form-check-label" for="generate_multiple">
+                                    <strong>Générer plusieurs cours</strong> dans différentes matières adaptées à mon humeur
+                                </label>
+                            </div>
+                            <small class="text-muted">Cochez cette option pour générer 3 cours dans différentes matières selon votre émotion "{{ recent_emotion.get_emotion_type_display }}"</small>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Le cours généré inclura :</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Des vidéos éducatives</li>
+                                <li>Un quiz interactif</li>
+                                <li>Des exercices pratiques</li>
+                                <li>Du contenu adapté à votre niveau</li>
+                            </ul>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="generateBtn">
+                            <i class="bi bi-robot"></i> Générer le Cours
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultat de génération -->
+    <div class="row mt-4" id="generationResult" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Génération en cours...</span>
+                    </div>
+                    <p class="mb-0">Génération du cours en cours...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('generateForm');
+    const generationTypeInputs = document.querySelectorAll('input[name="generation_type"]');
+    const topicSection = document.getElementById('topicSection');
+    const difficultySection = document.getElementById('difficultySection');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultDiv = document.getElementById('generationResult');
+    
+    const subjectSection = document.getElementById('subjectSection');
+    const multipleSection = document.getElementById('multipleSection');
+    
+    // Gérer le changement de type de génération
+    generationTypeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const type = this.value;
+            document.getElementById('generation_type_input').value = type;
+            
+            if (type === 'profile') {
+                topicSection.style.display = 'none';
+                difficultySection.style.display = 'none';
+                subjectSection.style.display = 'none';
+                if (multipleSection) multipleSection.style.display = 'none';
+            } else if (type === 'emotion') {
+                topicSection.style.display = 'none';
+                difficultySection.style.display = 'none';
+                subjectSection.style.display = 'none';
+                if (multipleSection) multipleSection.style.display = 'block';
+            } else {
+                topicSection.style.display = 'block';
+                difficultySection.style.display = 'block';
+                subjectSection.style.display = 'block';
+                if (multipleSection) multipleSection.style.display = 'none';
+            }
+        });
+    });
+    
+    // Soumettre le formulaire
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const generationType = formData.get('generation_type');
+        
+        // Afficher le loader
+        resultDiv.style.display = 'block';
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Génération...';
+        
+        // Soumettre via AJAX
+        fetch('{% url "generate_course_api" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                topic: formData.get('topic'),
+                difficulty: formData.get('difficulty'),
+                subject: formData.get('subject'),
+                generation_type: generationType,
+                generate_multiple: formData.get('generate_multiple') === 'true'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            resultDiv.style.display = 'none';
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="bi bi-robot"></i> Générer le Cours';
+            
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Rediriger vers le(s) cours généré(s)
+                setTimeout(() => {
+                    if (data.courses && data.courses.length > 0) {
+                        // Plusieurs cours générés, rediriger vers la liste
+                        window.location.href = '{% url "course_list" %}';
+                    } else if (data.course) {
+                        // Un seul cours, rediriger vers le cours
+                        window.location.href = data.course.url;
+                    }
+                }, 1500);
+            } else {
+                showNotification('Erreur: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            resultDiv.style.display = 'none';
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="bi bi-robot"></i> Générer le Cours';
+            showNotification('Erreur lors de la génération', 'danger');
+            console.error('Erreur:', error);
+        });
+    });
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function showNotification(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.minWidth = '300px';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}
+
