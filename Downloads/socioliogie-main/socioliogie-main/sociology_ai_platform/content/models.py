@@ -7,7 +7,7 @@ class Course(models.Model):
         ('intermediate', 'Intermédiaire'),
         ('advanced', 'Avancé'),
     ]
-    
+   
     SUBJECT_CHOICES = [
         ('sociology', 'Sociologie'),
         ('mathematics', 'Mathématiques'),
