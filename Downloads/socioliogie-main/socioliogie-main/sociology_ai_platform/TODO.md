@@ -1,7 +1,12 @@
-# TODO for Adding Background Images to Homepage
+# TODO: Enhance Forum for File Uploads and Social Interactions
 
-- [x] Update static/css/style.css to add styles for the background slideshow
-- [x] Modify templates/home.html to add the background slideshow functionality
-- [x] Use JavaScript to cycle through images with a 0.5-second transition
-- [x] Test the implementation to ensure the background slideshow works correctly
-- [x] Verify that the transition effect is smooth and takes 0.5 seconds
+## Steps to Complete
+
+- [ ] Modify social/models.py: Add file field to Post model for PDF, DOC, DOCX, images
+- [ ] Update social/views.py: Modify create_post view to handle file upload
+- [ ] Edit templates/social/create_post.html: Add file input field
+- [ ] Edit templates/social/forum.html: Display file indicator/icon if file attached
+- [ ] Edit templates/social/post_detail.html: Display file download link or preview
+- [ ] Create and apply database migration for new file field
+- [ ] Test file uploads and downloads
+- [ ] Restrict file types if necessary (optional)
