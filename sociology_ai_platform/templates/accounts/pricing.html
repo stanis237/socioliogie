@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Tarifs - Plateforme d'Apprentissage IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 5rem 0;
+        border-radius: 0 0 2rem 2rem;
+        margin-bottom: -3rem;
+    }
+    .pricing-card {
+        border: none;
+        border-radius: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15) !important;
+    }
+    .pricing-card.premium-card {
+        border: 2px solid #fd7e14;
+        position: relative;
+    }
+    .premium-badge {
+        position: absolute;
+        top: 1.5rem;
+        right: -3rem;
+        background-color: #fd7e14;
+        color: white;
+        padding: 0.5rem 3rem;
+        transform: rotate(45deg);
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .feature-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+    .check-icon {
+        color: #198754;
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+    .cross-icon {
+        color: #dc3545;
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-header text-white text-center shadow">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Boostez Votre Apprentissage</h1>
+        <p class="lead">Choisissez la formule adaptée à votre rythme et débloquez la puissance totale de l'IA.</p>
+    </div>
+</div>
+
+<div class="container my-5 pt-5">
+    <div class="row g-4 justify-content-center">
+        <!-- Plan Gratuit -->
+        <div class="col-md-5 col-lg-4">
+            <div class="card pricing-card h-100 shadow-sm">
+                <div class="card-body p-5 d-flex flex-column">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill uppercase fw-bold mb-2">Standard</span>
+                        <h2 class="card-title fw-bold">Gratuit</h2>
+                        <div class="d-flex justify-content-center align-items-baseline my-3">
+                            <span class="display-5 fw-bold">0 €</span>
+                            <span class="text-muted ms-1">/ toujours</span>
+                        </div>
+                        <p class="text-muted">Pour découvrir la plateforme et les bases de la sociologie.</p>
+                    </div>
+                    
+                    <ul class="list-unstyled feature-list mb-5 flex-grow-1">
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Accès aux cours <strong>Débutant</strong></li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Quiz et Exercices de base</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> 1 cours IA personnalisé max</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Tuteur IA (limité à 3 questions / jour)</li>
+                        <li><i class="bi bi-x-circle-fill cross-icon"></i> Pas de certificat de complétion</li>
+                        <li><i class="bi bi-x-circle-fill cross-icon"></i> Publicité et support standard</li>
+                    </ul>
+                    
+                    <div class="d-grid mt-auto">
+                        {% if user.is_authenticated and not user.profile.is_premium %}
+                        <button class="btn btn-outline-secondary btn-lg py-3 rounded-pill disabled" disabled>Formule Actuelle</button>
+                        {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg py-3 rounded-pill">S'inscrire</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Premium -->
+        <div class="col-md-5 col-lg-4">
+            <div class="card pricing-card premium-card h-100 shadow">
+                <div class="premium-badge">Recommandé</div>
+                <div class="card-body p-5 d-flex flex-column">
+                    <div class="text-center mb-4">
+                        <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill uppercase fw-bold mb-2">Propulsion</span>
+                        <h2 class="card-title fw-bold">Premium</h2>
+                        <div class="d-flex justify-content-center align-items-baseline my-3">
+                            <span class="display-5 fw-bold text-primary">9,99 €</span>
+                            <span class="text-muted ms-1">/ mois</span>
+                        </div>
+                        <p class="text-muted">L'accès complet et sans compromis propulsé par l'IA Gemini.</p>
+                    </div>
+                    
+                    <ul class="list-unstyled feature-list mb-5 flex-grow-1">
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Accès à <strong>tous les cours</strong> (Tous niveaux)</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Quiz & exercices complets illimités</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> <strong>Générations IA illimitées</strong> (Gemini API)</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> <strong>Tuteur IA interactif illimité</strong></li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> <strong>Certificats officiels</strong> téléchargeables</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Bonus de <strong>+500 points</strong> de profil</li>
+                        <li><i class="bi bi-check-circle-fill check-icon"></i> Navigation 100% sans pub</li>
+                    </ul>
+                    
+                    <div class="d-grid mt-auto">
+                        {% if user.is_authenticated %}
+                            {% if user.profile.is_premium %}
+                            <button class="btn btn-success btn-lg py-3 rounded-pill disabled" disabled><i class="bi bi-check-lg"></i> Déjà Membre Premium</button>
+                            {% else %}
+                            <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg py-3 rounded-pill shadow-sm">Passer au Premium</a>
+                            {% endif %}
+                        {% else %}
+                        <a href="{% url 'login' %}?next={% url 'pricing' %}" class="btn btn-primary btn-lg py-3 rounded-pill">Se connecter pour acheter</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Section -->
+    <div class="row mt-5 justify-content-center">
+        <div class="col-md-8">
+            <h3 class="text-center mb-4">Questions Fréquentes</h3>
+            <div class="accordion shadow-sm" id="faqAccordion" style="border-radius: 1rem; overflow: hidden;">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            Puis-je annuler mon abonnement à tout moment ?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Oui, absolument. Notre abonnement est sans engagement. Vous pouvez l'annuler à tout moment depuis votre page de profil d'un simple clic.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            Comment fonctionne la génération de cours par IA ?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Nous utilisons les modèles avancés de Google Gemini. L'IA rédige instantanément le syllabus, crée des vidéos simulées, élabore un quiz d'évaluation sur mesure et invente des exercices pratiques adaptés à votre niveau.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                            Les certificats sont-ils officiels ?
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Nos certificats attestent de votre réussite aux évaluations (quizz et exercices) de la plateforme. Ils comportent une signature numérique unique et peuvent être imprimés pour enrichir votre CV académique.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -13,6 +14,9 @@ class UserProfile(models.Model):
         ('advanced', 'Avancé'),
     ])
     points = models.IntegerField(default=0)
+    is_premium = models.BooleanField(default=False)
+    ai_questions_asked_today = models.IntegerField(default=0)
+    last_question_reset = models.DateField(default=timezone.localdate)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

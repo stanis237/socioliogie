@@ -6,76 +6,119 @@
     <title>{% block title %}Plateforme d'Apprentissage Sociologie IA{% endblock %}</title>
     
     {% load static %}
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- Custom Interactive CSS -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/interactive.css' %}">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg" id="mainNavbar">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="bi bi-mortarboard-fill"></i> leaning ENSPD IA
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+                <i class="bi bi-mortarboard-fill"></i> Learning ENSPD IA
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Accueil</a>
+                        <a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house-door"></i> Accueil</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'course_list' %}">Cours</a>
+                        <a class="nav-link" href="{% url 'course_list' %}"><i class="bi bi-book"></i> Cours</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Tableau de bord</a>
+                        <a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'forum' %}">Forum</a>
+                        <a class="nav-link" href="{% url 'forum' %}"><i class="bi bi-chat-dots"></i> Forum</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-tutor" href="{% url 'ai_tutor' %}">
+                            <i class="bi bi-robot"></i> Tuteur IA
+                            {% if not user.profile.is_premium %}
+                            <span class="badge bg-secondary rounded-pill" style="font-size:0.65rem;">Limité</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark rounded-pill" style="font-size:0.65rem;">PRO</span>
+                            {% endif %}
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-center">
                     {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ user.username }}
+                    
+                    <!-- Premium upgrade CTA (free users only) -->
+                    {% if not user.profile.is_premium %}
+                    <li class="nav-item me-2">
+                        <a href="{% url 'pricing' %}" class="btn btn-warning btn-sm rounded-pill fw-bold px-3">
+                            <i class="bi bi-stars"></i> Devenir Premium
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">
-                                <i class="bi bi-person"></i> Mon Profil
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'recommendations' %}">
-                                <i class="bi bi-stars"></i> Recommandations
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'notifications' %}">
-                                <i class="bi bi-bell"></i> Notifications
-                            </a></li>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span>{{ user.username }}</span>
+                            {% if user.profile.is_premium %}
+                            <span class="badge bg-warning text-dark" style="font-size:0.6rem; border-radius: 1rem; padding: 0.2rem 0.5rem;">PRO</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' %}">
+                                    <i class="bi bi-person me-2"></i>Mon Profil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'recommendations' %}">
+                                    <i class="bi bi-stars me-2"></i>Recommandations
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'notifications' %}">
+                                    <i class="bi bi-bell me-2"></i>Notifications
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'pricing' %}">
+                                    <i class="bi bi-credit-card me-2"></i>Abonnements
+                                </a>
+                            </li>
                             {% if user.is_staff %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">
-                                <i class="bi bi-gear"></i> Administration
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">
+                                    <i class="bi bi-gear me-2"></i>Administration
+                                </a>
+                            </li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                                <i class="bi bi-box-arrow-right"></i> Déconnexion
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Connexion</a>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Connexion</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Inscription</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-sm rounded-pill px-3">Inscription</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -83,33 +126,35 @@
         </div>
     </nav>
 
-    <!-- Messages -->
+    <!-- Flash Messages -->
     {% if messages %}
     <div class="container mt-3">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
     <!-- Main Content -->
-    <main>
+    <main class="pb-5">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light mt-5 py-4">
+    <footer class="footer-dark py-4">
         <div class="container">
-            <div class="row">
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5>Plateforme d'Apprentissage en ligne  Intelligente</h5>
-                    <p>Apprenez  de manière personnalisée avec l'intelligence artificielle.</p>
+                    <h6 class="fw-bold mb-1"><i class="bi bi-mortarboard-fill"></i> Learning ENSPD IA</h6>
+                    <p class="text-muted mb-0 small">Plateforme d'apprentissage intelligente propulsée par l'IA.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2025 Learning ENSPD IA. Tous droits réservés.</p>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <a href="{% url 'pricing' %}" class="text-muted small me-3 text-decoration-none">Tarifs</a>
+                    <a href="{% url 'forum' %}" class="text-muted small text-decoration-none">Forum</a>
+                    <p class="text-muted small mb-0 mt-1">&copy; 2025 Learning ENSPD IA. Tous droits réservés.</p>
                 </div>
             </div>
         </div>
@@ -117,9 +162,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom Interactive JS -->
+    <!-- Custom JS -->
     <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
-

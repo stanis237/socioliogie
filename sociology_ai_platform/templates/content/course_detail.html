@@ -1,121 +1,228 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ course.title }}{% endblock %}
+{% block title %}{{ course.title }} - Learning ENSPD IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .course-hero {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border-radius: 1.25rem;
+        padding: 3rem 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .course-hero::after {
+        content: '';
+        position: absolute;
+        width: 300px; height: 300px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+        top: -80px; right: -80px;
+    }
+    .difficulty-badge {
+        font-size: 0.85rem;
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+    }
+    .section-card {
+        border: none;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+    .section-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1.25rem 1.5rem;
+    }
+    .list-item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+    .list-item-row:last-child { border-bottom: none; }
+    .list-item-row:hover { background-color: #f8f9fa; }
+    .completion-banner {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        color: white;
+        border-radius: 1rem;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <nav aria-label="breadcrumb">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Accueil</a></li>
             <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Cours</a></li>
             <li class="breadcrumb-item active">{{ course.title }}</li>
         </ol>
     </nav>
-    
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <h1>{{ course.title }}</h1>
-            <p class="text-muted">{{ course.description }}</p>
+
+    <!-- Completion banner -->
+    {% if is_completed %}
+    <div class="completion-banner d-flex align-items-center justify-content-between shadow-sm">
+        <div>
+            <h5 class="fw-bold mb-0"><i class="bi bi-check-circle-fill"></i> Cours terminé !</h5>
+            <p class="mb-0 small opacity-75">Vous avez complété ce cours et gagné 100 points.</p>
+        </div>
+        {% if user.profile.is_premium %}
+        <a href="{% url 'generate_certificate' course.id %}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm">
+            <i class="bi bi-award-fill text-warning"></i> Obtenir mon Certificat
+        </a>
+        {% else %}
+        <a href="{% url 'pricing' %}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm">
+            <i class="bi bi-stars text-primary"></i> Certificat Premium
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Course Hero -->
+    <div class="course-hero shadow mb-4">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+            <div style="max-width: 70%;">
+                <h1 class="fw-bold mb-2">{{ course.title }}</h1>
+                <p class="mb-3" style="opacity: 0.85;">{{ course.description }}</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge
+                        {% if course.difficulty == 'beginner' %}bg-success
+                        {% elif course.difficulty == 'intermediate' %}bg-warning text-dark
+                        {% else %}bg-danger{% endif %}
+                        difficulty-badge">
+                        {{ course.get_difficulty_display }}
+                    </span>
+                    <span class="badge bg-light text-dark difficulty-badge">
+                        <i class="bi bi-book"></i> {{ course.get_subject_display }}
+                    </span>
+                </div>
+            </div>
+            {% if not is_completed %}
+            <a href="{% url 'complete_course' course.id %}" class="btn btn-success rounded-pill px-4 shadow-sm align-self-start">
+                <i class="bi bi-check-circle-fill"></i> Marquer comme terminé
+            </a>
+            {% endif %}
         </div>
     </div>
-    
+
     <!-- Videos -->
     {% if videos %}
-    <div class="card shadow mb-4">
-        <div class="card-header">
-            <h5><i class="bi bi-play-circle"></i> Vidéos</h5>
+    <div class="card section-card">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-play-circle-fill text-primary fs-5"></i>
+            <h5 class="mb-0 fw-bold">Chapitres Vidéo</h5>
+            <span class="badge bg-primary-subtle text-primary ms-auto">{{ videos|length }}</span>
         </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for video in videos %}
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">{{ video.title }}</h6>
-                        <small>{{ video.duration }}</small>
+        <div class="card-body p-0">
+            {% for video in videos %}
+            <div class="list-item-row">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;">
+                        <i class="bi bi-play-fill"></i>
                     </div>
-                    <a href="{{ video.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
-                        <i class="bi bi-play-fill"></i> Regarder
-                    </a>
+                    <div>
+                        <h6 class="mb-0 fw-semibold">{{ video.title }}</h6>
+                        {% if video.duration %}<small class="text-muted"><i class="bi bi-clock"></i> {{ video.duration }}</small>{% endif %}
+                    </div>
                 </div>
-                {% endfor %}
+                <a href="{{ video.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="bi bi-play-fill"></i> Regarder
+                </a>
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
-    
+
     <!-- Documents -->
     {% if documents %}
-    <div class="card shadow mb-4">
-        <div class="card-header">
-            <h5><i class="bi bi-file-earmark-text"></i> Documents</h5>
+    <div class="card section-card">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+            <h5 class="mb-0 fw-bold">Documents</h5>
+            <span class="badge bg-danger-subtle text-danger ms-auto">{{ documents|length }}</span>
         </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for document in documents %}
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <h6 class="mb-0">{{ document.title }}</h6>
-                        <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary" download>
-                            <i class="bi bi-download"></i> Télécharger
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
+        <div class="card-body p-0">
+            {% for document in documents %}
+            <div class="list-item-row">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-file-earmark-text me-2"></i>{{ document.title }}</h6>
+                <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-danger rounded-pill px-3" download>
+                    <i class="bi bi-download"></i> Télécharger
+                </a>
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
-    
+
     <!-- Quizzes -->
     {% if quizzes %}
-    <div class="card shadow mb-4">
-        <div class="card-header">
-            <h5><i class="bi bi-question-circle"></i> Quiz</h5>
+    <div class="card section-card">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-patch-question-fill text-warning fs-5"></i>
+            <h5 class="mb-0 fw-bold">Quiz d'évaluation</h5>
+            <span class="badge bg-warning-subtle text-warning ms-auto">{{ quizzes|length }}</span>
         </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for quiz in quizzes %}
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <h6 class="mb-0">{{ quiz.title }}</h6>
-                        <a href="{% url 'quiz_detail' quiz.id %}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-pencil"></i> Commencer
-                        </a>
-                    </div>
+        <div class="card-body p-0">
+            {% for quiz in quizzes %}
+            <div class="list-item-row">
+                <div>
+                    <h6 class="mb-0 fw-semibold">{{ quiz.title }}</h6>
+                    <small class="text-muted">{{ quiz.questions|length }} question(s)</small>
                 </div>
-                {% endfor %}
+                <a href="{% url 'quiz_detail' quiz.id %}" class="btn btn-sm btn-warning text-dark rounded-pill px-3">
+                    <i class="bi bi-pencil-fill"></i> Commencer
+                </a>
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
-    
+
     <!-- Exercises -->
     {% if exercises %}
-    <div class="card shadow mb-4">
-        <div class="card-header">
-            <h5><i class="bi bi-journal-text"></i> Exercices</h5>
+    <div class="card section-card">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-journal-text fs-5 text-success"></i>
+            <h5 class="mb-0 fw-bold">Exercices pratiques</h5>
+            <span class="badge bg-success-subtle text-success ms-auto">{{ exercises|length }}</span>
         </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for exercise in exercises %}
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">{{ exercise.title }}</h6>
-                            <span class="badge bg-{% if exercise.difficulty == 'easy' %}success{% elif exercise.difficulty == 'medium' %}warning{% else %}danger{% endif %}">
-                                {{ exercise.get_difficulty_display }}
-                            </span>
-                        </div>
-                        <a href="{% url 'exercise_detail' exercise.id %}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-arrow-right"></i> Voir
-                        </a>
-                    </div>
+        <div class="card-body p-0">
+            {% for exercise in exercises %}
+            <div class="list-item-row">
+                <div>
+                    <h6 class="mb-0 fw-semibold">{{ exercise.title }}</h6>
+                    <span class="badge rounded-pill
+                        {% if exercise.difficulty == 'easy' %}bg-success-subtle text-success
+                        {% elif exercise.difficulty == 'medium' %}bg-warning-subtle text-warning
+                        {% else %}bg-danger-subtle text-danger{% endif %}">
+                        {{ exercise.get_difficulty_display }}
+                    </span>
                 </div>
-                {% endfor %}
+                <a href="{% url 'exercise_detail' exercise.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                    <i class="bi bi-arrow-right"></i> Voir
+                </a>
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
+
+    {% if not videos and not documents and not quizzes and not exercises %}
+    <div class="alert alert-info rounded-3">
+        <i class="bi bi-info-circle-fill"></i> Ce cours ne contient pas encore de contenu. Ajoutez-en depuis l'administration.
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}
-

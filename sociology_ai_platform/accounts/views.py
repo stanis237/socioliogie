@@ -59,3 +59,35 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Vous avez été déconnecté avec succès. À bientôt!')
     return redirect('login')
+
+def pricing(request):
+    """Page affichant les offres de tarification de la plateforme"""
+    return render(request, 'accounts/pricing.html')
+
+@login_required
+def checkout(request):
+    """Page de simulation de paiement pour passer à l'abonnement Premium"""
+    from social.models import Notification
+    
+    if request.user.profile.is_premium:
+        messages.info(request, "Vous possédez déjà l'abonnement Premium !")
+        return redirect('profile')
+        
+    if request.method == 'POST':
+        # Simulation de traitement bancaire réussi
+        profile = request.user.profile
+        profile.is_premium = True
+        profile.points += 500  # Bonus de points de bienvenue premium !
+        profile.save()
+        
+        # Envoyer une notification de bienvenue
+        Notification.objects.create(
+            user=request.user,
+            message="Félicitations ! Votre abonnement Premium est maintenant actif. Vous avez reçu un bonus de 500 points."
+        )
+        
+        messages.success(request, "Paiement simulé réussi ! Bienvenue dans le cercle Premium.")
+        return redirect('profile')
+        
+    return render(request, 'accounts/checkout.html')
+

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificat de Réussite - {{ user.username }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Georgia', serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .certificate-container {
+            background-color: #ffffff;
+            border: 20px double #c5a059;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            max-width: 900px;
+            width: 100%;
+            padding: 5rem 4rem;
+            position: relative;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .certificate-container::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 2px solid #c5a059;
+            pointer-events: none;
+        }
+        .logo-section {
+            color: #1e3c72;
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .cert-title {
+            font-size: 2.8rem;
+            color: #c5a059;
+            font-weight: normal;
+            margin-bottom: 2rem;
+            font-family: 'Georgia', serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .cert-text {
+            font-size: 1.2rem;
+            color: #555555;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+        .recipient-name {
+            font-size: 2.5rem;
+            color: #111111;
+            font-weight: bold;
+            text-decoration: underline;
+            text-underline-offset: 10px;
+            text-decoration-color: #c5a059;
+            margin: 1.5rem 0;
+            font-family: 'Brush Script MT', 'Lucida Handwriting', cursive, sans-serif;
+        }
+        .course-title {
+            font-size: 1.8rem;
+            color: #1e3c72;
+            font-weight: bold;
+            margin: 1.5rem 0;
+        }
+        .signature-row {
+            margin-top: 4rem;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 3rem;
+        }
+        .signature-box {
+            width: 200px;
+            text-align: center;
+            border-top: 1px solid #bbbbbb;
+            padding-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #777777;
+        }
+        .sig-image {
+            font-family: 'Brush Script MT', 'Lucida Handwriting', cursive, sans-serif;
+            font-size: 1.5rem;
+            color: #1e3c72;
+            margin-bottom: -5px;
+        }
+        .gold-seal {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #fce38a 0%, #c5a059 100%);
+            border-radius: 50%;
+            margin: 2rem auto;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 0.8rem;
+            border: 2px dashed #ffffff;
+        }
+        .gold-seal::after {
+            content: '★ PRO ★';
+            font-size: 0.6rem;
+            position: absolute;
+            bottom: 10px;
+        }
+        .no-print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        /* Styles d'impression */
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+                margin: 0;
+            }
+            .no-print-btn, .back-btn {
+                display: none !important;
+            }
+            .certificate-container {
+                box-shadow: none;
+                border: 20px double #c5a059;
+                margin: 0 auto;
+                max-width: 100%;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-secondary back-btn shadow-sm">
+        <i class="bi bi-arrow-left"></i> Retour au cours
+    </a>
+
+    <button onclick="window.print();" class="btn btn-primary no-print-btn shadow-sm py-2 px-3">
+        <i class="bi bi-printer"></i> Imprimer / Enregistrer en PDF
+    </button>
+
+    <div class="certificate-container">
+        <div class="logo-section">
+            <i class="bi bi-mortarboard-fill"></i> LEARNING ENSPD IA
+        </div>
+        
+        <h2 class="cert-title">Certificat de Réussite</h2>
+        
+        <p class="cert-text">
+            Ce document atteste solennellement que l'apprenant(e)
+        </p>
+        
+        <h3 class="recipient-name">{{ user.first_name|default:user.username }} {{ user.last_name }}</h3>
+        
+        <p class="cert-text">
+            a suivi avec assiduité et complété avec succès toutes les évaluations du cours en ligne :
+        </p>
+        
+        <h4 class="course-title">« {{ course.title }} »</h4>
+        
+        <p class="cert-text text-muted" style="font-size: 0.95rem;">
+            Délivré le {{ date_completed|date:"d F Y" }} sous les auspices de la plateforme d'apprentissage IA adaptative.
+        </p>
+
+        <div class="gold-seal">
+            <i class="bi bi-award" style="font-size: 1.8rem; margin-top: -15px;"></i>
+        </div>
+
+        <div class="signature-row">
+            <div class="signature-box">
+                <div class="sig-image">Prophète</div>
+                Tuteur IA
+            </div>
+            <div class="signature-box">
+                <div class="sig-image" style="font-family: serif; font-style: italic; font-weight: bold; font-size: 1.2rem;">Directeur</div>
+                Comité Pédagogique
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

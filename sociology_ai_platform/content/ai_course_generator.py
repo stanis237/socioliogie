@@ -3,6 +3,7 @@ Service d'IA pour générer automatiquement des cours dans toutes les matières
 """
 import random
 from .models import Course, Video, Quiz, Exercise
+from .gemini_service import GeminiService
 
 class AICourseGenerator:
     """Générateur de cours basé sur l'IA pour toutes les matières"""
@@ -224,43 +225,19 @@ class AICourseGenerator:
     @staticmethod
     def generate_course(topic=None, difficulty='intermediate', subject='sociology', user_preferences=None):
         """
-        Génère un cours complet avec son contenu
-        
-        Args:
-            topic: Sujet du cours (optionnel)
-            difficulty: Niveau de difficulté (beginner, intermediate, advanced)
-            subject: Matière du cours
-            user_preferences: Préférences de l'utilisateur (optionnel)
+        Génère un cours complet avec son contenu en utilisant l'IA Gemini (ou le fallback intelligent)
         """
-        # Obtenir les templates pour la matière
-        subject_templates = AICourseGenerator.COURSE_TEMPLATES.get(
-            subject, 
-            AICourseGenerator.COURSE_TEMPLATES['sociology']
-        )
+        # 1. Récupérer les données de cours via le service Gemini
+        try:
+            course_data = GeminiService.generate_course_data(topic, difficulty, subject)
+        except Exception as e:
+            # Fallback en cas d'erreur
+            course_data = GeminiService._generate_fallback_course_data(topic, difficulty, subject)
+            
+        title = course_data.get('title', topic if topic else f'Cours de {subject}')
+        description = course_data.get('description', 'Cours généré automatiquement.')
         
-        difficulty_templates = subject_templates.get(
-            difficulty,
-            subject_templates.get('intermediate', subject_templates.get('beginner', [{}]))
-        )
-        
-        if not difficulty_templates:
-            difficulty_templates = [{'topics': [f'Cours de {subject}'], 'descriptions': ['Cours généré automatiquement.']}]
-        
-        template = random.choice(difficulty_templates) if difficulty_templates else {}
-        
-        # Générer le titre
-        if topic:
-            title = topic
-        else:
-            topics = template.get('topics', [f'Cours de {subject}'])
-            title = random.choice(topics) if topics else f'Cours de {subject}'
-        
-        # Générer la description
-        descriptions = template.get('descriptions', ['Cours généré automatiquement.'])
-        description = random.choice(descriptions) if descriptions else 'Cours généré automatiquement.'
-        description += f" Ce cours de niveau {AICourseGenerator._get_difficulty_label(difficulty)} vous permettra d'approfondir vos connaissances en {AICourseGenerator._get_subject_label(subject)}."
-        
-        # Créer le cours
+        # 2. Créer le cours en base
         course = Course.objects.create(
             title=title,
             description=description,
@@ -268,15 +245,37 @@ class AICourseGenerator:
             subject=subject
         )
         
-        # Générer des vidéos
-        AICourseGenerator._generate_videos(course, difficulty, subject)
-        
-        # Générer un quiz
-        AICourseGenerator._generate_quiz(course, difficulty)
-        
-        # Générer des exercices
-        AICourseGenerator._generate_exercises(course, difficulty)
-        
+        # 3. Générer les chapitres vidéo
+        videos_list = course_data.get('videos', [])
+        for i, v in enumerate(videos_list):
+            Video.objects.create(
+                course=course,
+                title=v.get('title', f"Chapitre {i+1} : {title}"),
+                url=v.get('url', f"https://example.com/video/{course.id}/{i+1}"),
+                duration=v.get('duration', '15:00')
+            )
+            
+        # 4. Générer le quiz
+        quizzes_list = course_data.get('quizzes', [])
+        if quizzes_list:
+            Quiz.objects.create(
+                course=course,
+                title=f"Quiz d'évaluation - {title}",
+                questions=quizzes_list
+            )
+        else:
+            AICourseGenerator._generate_quiz(course, difficulty)
+            
+        # 5. Générer les exercices
+        exercises_list = course_data.get('exercises', [])
+        for ex in exercises_list:
+            Exercise.objects.create(
+                course=course,
+                title=ex.get('title', f"Exercice pratique - {title}"),
+                content=ex.get('content', "Appliquez les concepts étudiés."),
+                difficulty=ex.get('difficulty', 'medium')
+            )
+            
         return course
     
     @staticmethod
